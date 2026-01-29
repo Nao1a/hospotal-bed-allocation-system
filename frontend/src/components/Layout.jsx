@@ -56,12 +56,6 @@ const Layout = ({ children }) => {
           <SidebarItem to="/beds" icon={BedDouble} label="Bed Management" />
           <SidebarItem to="/admit" icon={UserPlus} label="Admission Portal" />
           <SidebarItem to="/queue" icon={Users} label="Waiting Queue" />
-          
-          <div className="pt-8 pb-2">
-            <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">System</p>
-          </div>
-          <SidebarItem to="/reports" icon={BarChart3} label="Reports" />
-          <SidebarItem to="/settings" icon={Settings} label="Settings" />
         </nav>
 
         <div className="p-4 border-t border-gray-200">

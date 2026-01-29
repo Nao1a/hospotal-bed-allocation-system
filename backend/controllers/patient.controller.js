@@ -1,11 +1,13 @@
 const Patient = require('../models/Patient.model');
 const Bed = require('../models/Bed.model');
 const dsaManager = require('../dsa/dsaManager');
+const { logActivity } = require('./activity.controller');
 
 // POST /api/patients/register
 exports.registerPatient = async (req, res) => {
     try {
         const { patientId, name, severity, requiredWard } = req.body;
+        const username = req.user ? req.user.username : 'System';
 
         // 1. Process Admission via DSA
         const decision = dsaManager.processPatientAdmission({
@@ -28,6 +30,12 @@ exports.registerPatient = async (req, res) => {
                 { bedId: bed.bedId },
                 { status: bed.status }
             );
+        }
+
+        if (action === 'ADMITTED') {
+            logActivity('ADMIT_PATIENT', `Admitted patient ${name} (Severity: ${severity}) to bed ${bed.bedId}`, username, { patientId, bedId: bed.bedId });
+        } else {
+            logActivity('ADMIT_PATIENT', `Added patient ${name} (Severity: ${severity}) to waiting queue`, username, { patientId });
         }
 
         res.status(201).json({

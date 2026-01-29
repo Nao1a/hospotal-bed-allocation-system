@@ -35,4 +35,8 @@ export const patientAPI = {
   allocate: (id) => api.post(`/patients/${id}/allocate`),
 };
 
+export const activityAPI = {
+  getLogs: (limit = 10) => api.get('/activity', { params: { limit } })
+};
+
 export default api;

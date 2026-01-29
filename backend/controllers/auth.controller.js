@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User.model');
+const { logActivity } = require('./activity.controller');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -98,9 +99,12 @@ exports.getPendingNurses = async (req, res) => {
 exports.approveNurse = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
+        const adminName = req.user ? req.user.username : 'Admin';
+
         if (user) {
             user.isApproved = true;
             await user.save();
+            logActivity('NURSE_APPROVED', `Nurse ${user.username} approved by ${adminName}`, adminName, { nurseId: user.nurseId });
             res.json({ message: `Nurse ${user.username} approved` });
         } else {
             res.status(404).json({ message: 'User not found' });

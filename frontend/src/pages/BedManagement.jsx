@@ -7,18 +7,34 @@ import { useAuth } from '../context/AuthContext';
 const BedCard = ({ bed, patient, onDischarge, onAdmit }) => {
   const isOccupied = bed.status === 'OCCUPIED';
   
+  const getTypeStyles = (type) => {
+    switch (type) {
+      case 'ICU':
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'EMERGENCY':
+        return 'bg-orange-100 text-orange-700 border-orange-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
   return (
     <div className={`bg-white rounded-xl border-l-4 shadow-sm p-4 ${isOccupied ? 'border-red-500' : 'border-green-500'}`}>
       <div className="flex justify-between items-start mb-4">
-        <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${isOccupied ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-          {bed.status}
-        </span>
+        <div className="flex space-x-2">
+            <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${isOccupied ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+            {bed.status}
+            </span>
+            <span className={`text-xs font-bold px-2 py-1 rounded border uppercase ${getTypeStyles(bed.type)}`}>
+            {bed.type}
+            </span>
+        </div>
         {isOccupied && <div className="text-red-500 font-bold text-xl">*</div>}
         {!isOccupied && <div className="text-green-500 font-bold text-xl">✓</div>}
       </div>
       
       <h3 className="text-lg font-bold text-gray-900">{bed.bedId}</h3>
-      <p className="text-sm text-gray-500 mb-4">{bed.wardNumber} - {bed.type}</p>
+      <p className="text-sm text-gray-500 mb-4">{bed.wardNumber}</p>
       
       <div className="flex items-center space-x-3 mb-6">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isOccupied ? 'bg-gray-100 text-gray-600' : 'bg-gray-50 text-gray-300'}`}>

@@ -2,11 +2,13 @@ const Bed = require('../models/Bed.model');
 const Patient = require('../models/Patient.model'); // Needed to update patient if assigned automatically
 const dsaManager = require('../dsa/dsaManager');
 const { BED_STATUS } = require('../utils/constants');
+const { logActivity } = require('./activity.controller');
 
 // POST /api/beds
 exports.addBed = async (req, res) => {
     try {
         const { bedId, wardNumber, type } = req.body;
+        const username = req.user ? req.user.username : 'System';
 
         // 1. Persist to DB
         // If it starts as FREE
@@ -17,6 +19,8 @@ exports.addBed = async (req, res) => {
             status: BED_STATUS.FREE
         });
         await newBed.save();
+
+        logActivity('ADD_BED', `Added new bed ${bedId} in ward ${wardNumber}`, username, { bedId });
 
         // 2. Add to DSA Manager
         // This checks if the new bed can satisfy a waiting patient
@@ -41,6 +45,8 @@ exports.addBed = async (req, res) => {
                 { bedId: updatedBed.bedId },
                 { status: updatedBed.status }
             );
+
+            logActivity('ADMIT_PATIENT', `Waitlisted patient ${allocatedPatient.name} assigned to new bed ${bedId}`, 'System', { bedId, patientId: allocatedPatient.patientId });
 
             return res.status(201).json({
                 message: 'Bed added and automatically assigned to waiting patient',
@@ -78,6 +84,7 @@ exports.getAllBeds = (req, res) => {
 exports.updateBedStatus = async (req, res) => {
     const { bedId } = req.params;
     const { status } = req.body;
+    const username = req.user ? req.user.username : 'System';
 
     try {
         // We focus on Releasing Logic as per requirements
@@ -94,8 +101,7 @@ exports.updateBedStatus = async (req, res) => {
                 }
             );
 
-            // 1. update DB first? or DSA? 
-            // Better to see what DSA does first.
+            logActivity('DISCHARGE_PATIENT', `Discharged patient from bed ${bedId}`, username, { bedId });
             
             const result = dsaManager.processBedRelease(bedId);
             
@@ -115,6 +121,8 @@ exports.updateBedStatus = async (req, res) => {
                         assignedBedId: allocatedPatient.assignedBedId 
                     }
                 );
+                
+                logActivity('ADMIT_PATIENT', `Queue patient ${allocatedPatient.name} automatically admitted to ${bedId}`, 'System', { bedId, patientId: allocatedPatient.patientId });
 
                 // Update Bed in DB (It was free for a split second, now Occupied)
                 await Bed.findOneAndUpdate(

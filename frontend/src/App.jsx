@@ -108,22 +108,6 @@ function App() {
             </ProtectedRoute>
           } />
           
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <Layout>
-                <div className="text-gray-500 p-8">Reports Module (Coming Soon)</div>
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <Layout>
-                <div className="text-gray-500 p-8">Settings Module (Coming Soon)</div>
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

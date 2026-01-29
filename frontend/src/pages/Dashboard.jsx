@@ -8,7 +8,7 @@ import {
   Bell, 
   HelpCircle 
 } from 'lucide-react';
-import { bedAPI, patientAPI } from '../api';
+import { bedAPI, patientAPI, activityAPI } from '../api';
 
 const StatCard = ({ title, value, subtext, icon: Icon, color, subtextColor }) => (
   <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-40">
@@ -38,17 +38,20 @@ const Dashboard = () => {
     queueLength: 0,
     availableBeds: 0
   });
+  const [activities, setActivities] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bedsRes, queueRes] = await Promise.all([
+        const [bedsRes, queueRes, activityRes] = await Promise.all([
           bedAPI.getAll(),
-          patientAPI.getQueue()
+          patientAPI.getQueue(),
+          activityAPI.getLogs(5)
         ]);
 
         const beds = bedsRes.data;
         const queue = queueRes.data;
+        setActivities(activityRes.data);
 
         const totalCapacity = beds.length;
         const occupied = beds.filter(b => b.status === 'OCCUPIED').length;
@@ -132,7 +135,6 @@ const Dashboard = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h3 className="font-bold text-gray-900">Recent Activity Log</h3>
-          <button className="text-blue-600 text-sm font-semibold hover:text-blue-700">View All Log</button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -140,49 +142,36 @@ const Dashboard = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Patient Name</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ward/Room</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-               {/* Mock Data mimicking image */}
-              <tr className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-500">10:45 AM</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">Admitted</td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-medium">John Doe</td>
-                <td className="px-6 py-4 text-sm text-gray-500">Ward A - 102</td>
-                <td className="px-6 py-4">
-                   <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">Occupied</span>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-500">10:30 AM</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">Discharged</td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-medium">Jane Smith</td>
-                <td className="px-6 py-4 text-sm text-gray-500">Ward B - 205</td>
-                <td className="px-6 py-4">
-                   <span className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">Cleaning</span>
-                </td>
-              </tr>
-               <tr className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-500">10:15 AM</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">Moved</td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-medium">Robert Brown</td>
-                <td className="px-6 py-4 text-sm text-gray-500">ICU - 04</td>
-                <td className="px-6 py-4">
-                   <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">Occupied</span>
-                </td>
-              </tr>
-               <tr className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-500">09:45 AM</td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">New Entry</td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-medium">Alice Wilson</td>
-                <td className="px-6 py-4 text-sm text-gray-500">Waiting List</td>
-                <td className="px-6 py-4">
-                   <span className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">In Queue</span>
-                </td>
-              </tr>
+               {activities.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-4 text-center text-gray-500">No activity recorded yet</td>
+                  </tr>
+               ) : (
+                 activities.map((log) => (
+                    <tr key={log._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                            {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                                log.action.includes('ADMIT') ? 'bg-green-100 text-green-700' :
+                                log.action.includes('DISCHARGE') ? 'bg-red-100 text-red-700' :
+                                log.action.includes('ADD') ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                            }`}>
+                                {log.action.replace('_', ' ')}
+                            </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{log.description}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500 font-mono">{log.performedBy}</td>
+                    </tr>
+                 ))
+               )}
             </tbody>
           </table>
         </div>

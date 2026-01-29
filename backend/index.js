@@ -8,6 +8,7 @@ const authController = require('./controllers/auth.controller');
 const bedRoutes = require('./routes/bed.routes');
 const patientRoutes = require('./routes/patient.routes');
 const authRoutes = require('./routes/auth.routes');
+const activityRoutes = require('./routes/activity.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/beds', bedRoutes);
 app.use('/api/patients', patientRoutes);
+app.use('/api/activity', activityRoutes);
 
 app.get('/', (req, res) => {
     res.send('Hospital Bed Allocation System API (DSA Focused)');
