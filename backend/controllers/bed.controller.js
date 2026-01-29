@@ -83,11 +83,15 @@ exports.updateBedStatus = async (req, res) => {
         // We focus on Releasing Logic as per requirements
         if (status === BED_STATUS.FREE) {
             
-            // 0. Discharge Current Patient (Before releasing the bed to someone else)
-            // Find the patient who is currently ADMITTED to this bed
-            await Patient.findOneAndUpdate(
-                { assignedBedId: bedId, status: 'ADMITTED' }, 
-                { status: 'DISCHARGED', assignedBedId: `${bedId}_HISTORY` } 
+            // 0. Discharge ANYONE currently assigned to this bed (Clean up ghosts too)
+            await Patient.updateMany(
+                { assignedBedId: bedId }, 
+                { 
+                    $set: { 
+                        status: 'DISCHARGED', 
+                        assignedBedId: `${bedId}_HISTORY_${Date.now()}` 
+                    } 
+                }
             );
 
             // 1. update DB first? or DSA? 

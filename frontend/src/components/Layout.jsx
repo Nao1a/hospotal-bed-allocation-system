@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
   BedDouble, 
@@ -7,7 +8,9 @@ import {
   Users, 
   BarChart3, 
   Settings,
-  PlusSquare 
+  PlusSquare,
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 
 const SidebarItem = ({ to, icon: Icon, label }) => (
@@ -27,6 +30,8 @@ const SidebarItem = ({ to, icon: Icon, label }) => (
 );
 
 const Layout = ({ children }) => {
+  const { user, logout } = useAuth();
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -43,26 +48,40 @@ const Layout = ({ children }) => {
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
           <SidebarItem to="/" icon={LayoutDashboard} label="Dashboard" />
+          
+          {user?.role === 'ADMIN' && (
+             <SidebarItem to="/admin" icon={ShieldCheck} label="Nurse Approvals" />
+          )}
+          
           <SidebarItem to="/beds" icon={BedDouble} label="Bed Management" />
           <SidebarItem to="/admit" icon={UserPlus} label="Admission Portal" />
           <SidebarItem to="/queue" icon={Users} label="Waiting Queue" />
           
           <div className="pt-8 pb-2">
-             <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">System</p>
+            <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">System</p>
           </div>
           <SidebarItem to="/reports" icon={BarChart3} label="Reports" />
           <SidebarItem to="/settings" icon={Settings} label="Settings" />
         </nav>
 
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold">
-              DS
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold uppercase">
+                {user?.username?.substring(0, 2) || 'US'}
+              </div>
+              <div className="overflow-hidden">
+                <p className="text-sm font-medium text-gray-900 truncate w-24">{user?.username || 'User'}</p>
+                <p className="text-xs text-gray-500">{user?.role === 'ADMIN' ? 'SUPER ADMIN' : 'NURSE'}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Dr. Sarah Smith</p>
-              <p className="text-xs text-gray-500">SUPER ADMIN</p>
-            </div>
+            <button 
+                onClick={logout} 
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Sign Out"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
       </aside>

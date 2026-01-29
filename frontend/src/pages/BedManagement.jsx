@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Filter, User, Plus, Search, Settings } from 'lucide-react';
 import { bedAPI, patientAPI } from '../api';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const BedCard = ({ bed, patient, onDischarge, onAdmit }) => {
   const isOccupied = bed.status === 'OCCUPIED';
@@ -50,6 +51,7 @@ const BedCard = ({ bed, patient, onDischarge, onAdmit }) => {
 };
 
 const BedManagement = () => {
+  const { user } = useAuth();
   const [beds, setBeds] = useState([]);
   const [patients, setPatients] = useState([]);
   const [filter, setFilter] = useState('All Wards');
@@ -66,7 +68,7 @@ const BedManagement = () => {
     try {
       const [bedsRes, patientsRes] = await Promise.all([
         bedAPI.getAll(),
-        patientAPI.getAll()
+        patientAPI.getAll({ status: 'ADMITTED' }) // Optimization: Fetch only active patients
       ]);
       setBeds(bedsRes.data);
       setPatients(patientsRes.data);
@@ -121,10 +123,12 @@ const BedManagement = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Bed Management Grid</h2>
         <div className="flex space-x-3">
-          <button onClick={() => setIsModalOpen(true)} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-50">
-             <Plus size={18} />
-             <span>Add New Bed</span>
-          </button>
+          {user?.role === 'ADMIN' && (
+            <button onClick={() => setIsModalOpen(true)} className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-50">
+              <Plus size={18} />
+              <span>Add New Bed</span>
+            </button>
+          )}
           <button onClick={() => navigate('/admit')} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700">
              <Plus size={18} />
              <span>Add New Admission</span>
