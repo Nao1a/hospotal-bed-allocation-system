@@ -42,7 +42,6 @@ const Layout = ({ children }) => {
           </div>
           <div>
             <h1 className="font-bold text-lg text-gray-900">MedicCenter</h1>
-            <p className="text-xs text-slate-500">Pro Health Admin v2.4</p>
           </div>
         </div>
 

@@ -30,6 +30,7 @@ class PatientPriorityQueue {
     // Compare logic: Returns true if patient A has higher priority than patient B
     isHigherPriority(patientA, patientB) {
         if (patientA.severity > patientB.severity) return true;
+        
         if (patientA.severity < patientB.severity) return false;
         
         // If severity is equal, check arrival time (earlier is better)
